@@ -1,7 +1,7 @@
 <?php
 
-use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Ratchet\Server\IoServer;
 use React\EventLoop\Factory;
 use React\Socket\Server;
