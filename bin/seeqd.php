@@ -2,9 +2,6 @@
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
-use Ratchet\Http\HttpServer;
-use Ratchet\Wamp\WampServer;
-use Ratchet\WebSocket\WsServer;
 use Ratchet\Server\IoServer;
 use React\EventLoop\Factory;
 use React\Socket\Server;
