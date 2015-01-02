@@ -1,0 +1,71 @@
+#!/usr/bin/env php
+
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use SEEQD\Connection;
+use SEEQD\Messenger;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+
+$logDir = __DIR__ . '/../logs';
+
+if (!file_exists($logDir)) {
+    if (!mkdir($logDir, 0774, true)) {
+        throw new \RunTimeExeption(sprintf('Failed to create log dir %s', $logDir));
+    }
+}
+
+// initialize logger
+$logger = new Logger('SEEQD');
+$logger->pushHandler(new StreamHandler($logDir.'/seeqd.log', Logger::INFO));
+
+$console = new Application();
+
+$console
+    ->register('stitch')
+    ->setDescription('Initiate stitch of illumina reads')
+    ->addArgument('alignmentId', InputArgument::REQUIRED, 'The id of the sample run alignment')
+    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger) {
+
+        $context = new \ZMQContext();
+        $requester = new \ZMQSocket($context, \ZMQ::SOCKET_REQ);
+        $requester->connect('tcp://127.0.0.1:5555');
+
+        $requester->send(json_encode(array(
+            'service' => 'stitcher',
+            'method' => 'stitch',
+            'data' => array('alignmentId' => $input->getArgument('alignmentId'))
+        )));
+
+        $reply = $requester->recv();
+    })
+;
+
+$console
+    ->register('start-pipeline')
+    ->setDescription('Start pipeline for a given run')
+    ->addArgument('runId', InputArgument::REQUIRED, 'The id of the run')
+    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger) {
+
+        $context = new \ZMQContext();
+        $requester = new \ZMQSocket($context, \ZMQ::SOCKET_REQ);
+        $requester->connect('tcp://vacseq.mc.vanderbilt.edu:37200');
+
+        $requester->send(json_encode(array(
+            'service' => 'pipeline_manager',
+            'method' => 'start',
+            'data' => array('runId' => $input->getArgument('runId'))
+        )));
+
+        $reply = $requester->recv();
+    })
+;
+
+$console->run();

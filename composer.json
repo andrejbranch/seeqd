@@ -5,8 +5,7 @@
         }
     },
     "require": {
-        "cboden/Ratchet": "0.3.*",
         "monolog/monolog": "1.9.*@dev",
-        "react/zmq": "0.2.*"
+        "symfony/console": "2.6.*@dev"
     }
 }
