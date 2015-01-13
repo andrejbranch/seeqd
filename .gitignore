@@ -1,2 +1,4 @@
 logs/*
 vendor
+config/local.yml
+composer.log

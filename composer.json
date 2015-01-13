@@ -6,6 +6,7 @@
     },
     "require": {
         "monolog/monolog": "1.9.*@dev",
-        "symfony/console": "2.6.*@dev"
+        "symfony/console": "2.6.*@dev",
+        "symfony/yaml": "2.5.*@dev"
     }
 }

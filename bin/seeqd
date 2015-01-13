@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Yaml\Yaml;
 
 $logDir = __DIR__ . '/../logs';
 
@@ -21,6 +22,10 @@ if (!file_exists($logDir)) {
         throw new \RunTimeExeption(sprintf('Failed to create log dir %s', $logDir));
     }
 }
+
+$parsedParams = Yaml::parse(file_get_contents(__DIR__.'/../config/config.yml'));
+$params = $parsedParams['parameters'];
+$connection = sprintf('tcp://%s:%s', $params['host'], $params['listeningPort']);
 
 // initialize logger
 $logger = new Logger('SEEQD');
@@ -32,11 +37,11 @@ $console
     ->register('stitch')
     ->setDescription('Initiate stitch of illumina reads')
     ->addArgument('alignmentId', InputArgument::REQUIRED, 'The id of the sample run alignment')
-    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger) {
+    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger, $connection) {
 
         $context = new \ZMQContext();
         $requester = new \ZMQSocket($context, \ZMQ::SOCKET_REQ);
-        $requester->connect('tcp://127.0.0.1:5555');
+        $requester->connect($connection);
 
         $requester->send(json_encode(array(
             'service' => 'stitcher',
@@ -52,11 +57,11 @@ $console
     ->register('start-pipeline')
     ->setDescription('Start pipeline for a given run')
     ->addArgument('runId', InputArgument::REQUIRED, 'The id of the run')
-    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger) {
+    ->setCode(function (InputInterface $input, OutputInterface $output) use ($logger, $connection) {
 
         $context = new \ZMQContext();
         $requester = new \ZMQSocket($context, \ZMQ::SOCKET_REQ);
-        $requester->connect('tcp://vacseq.mc.vanderbilt.edu:37200');
+        $requester->connect($connection);
 
         $requester->send(json_encode(array(
             'service' => 'pipeline_manager',
