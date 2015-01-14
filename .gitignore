@@ -2,3 +2,4 @@ logs/*
 vendor
 config/local.yml
 composer.log
+composer.lock
